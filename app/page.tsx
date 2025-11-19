@@ -25,8 +25,8 @@ export default function Home() {
   }
 
   const handleSendMessage = async (content: string) => {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY
-    const model = process.env.NEXT_PUBLIC_GOOGLE_MODEL || 'models/gemini-2.5-flash'
+    const model = process.env.NEXT_PUBLIC_GOOGLE_MODEL || 'gemini-1.5-flash'
+
     const conv = getCurrentConversation()
     const newMessages = [...(conv?.messages ?? []), { role: 'user' as const, content }]
     setConversationMessages(conv.id, newMessages)
@@ -35,21 +35,35 @@ export default function Home() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages, model: model, apiKey: apiKey, }),
+        body: JSON.stringify({
+          messages: newMessages,
+          model,
+        }),
       })
 
       const data = await res.json()
+      debugger
       if (!res.ok) {
         const err = data?.error || 'Error al generar respuesta'
-        setConversationMessages(conv.id, [...newMessages, { role: 'assistant' as const, content: `Error: ${err}` }])
+        setConversationMessages(conv.id, [
+          ...newMessages,
+          { role: 'assistant', content: `Error: ${err}` },
+        ])
         return
       }
 
       const assistantContent = data.content || 'No se recibió respuesta.'
-      setConversationMessages(conv.id, [...newMessages, { role: 'assistant' as const, content: assistantContent }])
-    } catch (err: any) {
+      setConversationMessages(conv.id, [
+        ...newMessages,
+        { role: 'assistant', content: assistantContent },
+      ])
+
+    } catch (err) {
       console.error(err)
-      setConversationMessages(conv.id, [...newMessages, { role: 'assistant' as const, content: 'Error de conexión con la API.' }])
+      setConversationMessages(conv.id, [
+        ...newMessages,
+        { role: 'assistant', content: 'Error de conexión con la API.' },
+      ])
     }
   }
 
