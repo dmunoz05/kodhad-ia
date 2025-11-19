@@ -35,8 +35,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es">
-      <body className={`font-sans antialiased`}>
+    <html lang="es" className="dark">
+      <body className={`font-sans antialiased`}> 
         <Splash />
         {children}
       </body>

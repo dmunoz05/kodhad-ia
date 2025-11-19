@@ -9,7 +9,7 @@ export async function POST(req: Request) {
 
     const messages: Message[] = body.messages
     const model: string = body.model
-    const apiKey: string = process.env.GOOGLE_API_KEY!
+    const apiKey: string = process.env.NEXT_PUBLIC_GOOGLE_API_KEY!
 
     if (!messages) {
       return new Response(JSON.stringify({ error: "Messages required" }), { status: 400 })

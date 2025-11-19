@@ -25,7 +25,7 @@ export default function Home() {
   }
 
   const handleSendMessage = async (content: string) => {
-    const model = process.env.GOOGLE_MODEL || 'gemini-1.5-flash'
+    const model = process.env.NEXT_PUBLIC_GOOGLE_MODEL;
 
     const conv = getCurrentConversation()
     const newMessages = [...(conv?.messages ?? []), { role: 'user' as const, content }]
