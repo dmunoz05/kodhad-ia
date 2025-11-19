@@ -42,7 +42,7 @@ export default function Home() {
       })
 
       const data = await res.json()
-      debugger
+
       if (!res.ok) {
         const err = data?.error || 'Error al generar respuesta'
         setConversationMessages(conv.id, [
