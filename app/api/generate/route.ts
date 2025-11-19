@@ -8,8 +8,8 @@ export async function POST(req: Request) {
     const body = await req.json()
 
     const messages: Message[] = body.messages
-    const model: string = body.model || "gemini-1.5-flash"
-    const apiKey: string = process.env.NEXT_PUBLIC_GOOGLE_API_KEY!
+    const model: string = body.model
+    const apiKey: string = process.env.GOOGLE_API_KEY!
 
     if (!messages) {
       return new Response(JSON.stringify({ error: "Messages required" }), { status: 400 })
@@ -46,7 +46,11 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: text }), { status: 500 })
     }
 
-    const data = await res.json()
+    const data = await res.json().then(data =>
+      data.candidates?.[0]?.content?.parts?.[0]?.text ||
+      data.candidates?.[0]?.output ||
+      ""
+    )
 
     const output =
       data.candidates?.[0]?.content?.parts?.[0]?.text ||
