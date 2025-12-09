@@ -46,16 +46,9 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: text }), { status: 500 })
     }
 
-    const data = await res.json().then(data =>
-      data.candidates?.[0]?.content?.parts?.[0]?.text ||
-      data.candidates?.[0]?.output ||
-      ""
-    )
+    const data = await res.json()
 
-    const output =
-      data.candidates?.[0]?.content?.parts?.[0]?.text ||
-      data.candidates?.[0]?.output ||
-      ""
+    const output = data.candidates?.[0].content;
 
     return Response.json({ content: output })
   } catch (err: unknown) {

@@ -21,10 +21,12 @@ export default function Home() {
   const getCurrentConversation = () => conversations.find(c => c.id === currentConversationId) ?? conversations[0]
 
   const setConversationMessages = (id: number, messages: Message[]) => {
+    debugger
     setConversations(prev => prev.map(c => c.id === id ? { ...c, messages } : c))
   }
 
   const handleSendMessage = async (content: string) => {
+    debugger
     const model = process.env.NEXT_PUBLIC_GOOGLE_MODEL;
 
     const conv = getCurrentConversation()
@@ -41,7 +43,7 @@ export default function Home() {
         }),
       })
 
-      const data = await res.json()
+      const data = await res.json();
 
       if (!res.ok) {
         const err = data?.error || 'Error al generar respuesta'
@@ -52,10 +54,10 @@ export default function Home() {
         return
       }
 
-      const assistantContent = data.content || 'No se recibió respuesta.'
+      const assistantContent = data?.content || 'No se recibió respuesta.'
       setConversationMessages(conv.id, [
         ...newMessages,
-        { role: 'assistant', content: assistantContent },
+        { role: 'assistant', content: assistantContent?.parts?.[0]?.text || assistantContent },
       ])
 
     } catch (err) {
