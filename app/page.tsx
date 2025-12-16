@@ -6,6 +6,17 @@ import { ChatHeader } from '@/components/chat-header'
 import { ChatMessages } from '@/components/chat-messages'
 import { ChatInput } from '@/components/chat-input'
 
+interface ApiResponse {
+  content?: {
+    done: boolean
+    message: {
+      role: 'user' | 'assistant'
+      content: string
+    }
+  },
+  error?: string
+}
+
 export default function Home() {
   type Message = { role: 'user' | 'assistant'; content: string }
   type Conversation = { id: number; title: string; messages: Message[] }
@@ -17,48 +28,48 @@ export default function Home() {
   const [nextId, setNextId] = useState(2)
   const [selectedModel, setSelectedModel] = useState('default')
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
 
   const getCurrentConversation = () => conversations.find(c => c.id === currentConversationId) ?? conversations[0]
 
   const setConversationMessages = (id: number, messages: Message[]) => {
-    debugger
     setConversations(prev => prev.map(c => c.id === id ? { ...c, messages } : c))
   }
 
   const handleSendMessage = async (content: string) => {
-    debugger
-    const model = process.env.NEXT_PUBLIC_GOOGLE_MODEL;
-
     const conv = getCurrentConversation()
     const newMessages = [...(conv?.messages ?? []), { role: 'user' as const, content }]
     setConversationMessages(conv.id, newMessages)
+    setIsLoading(true)
 
     try {
-      const res = await fetch('/api/generate', {
+      const res: ApiResponse | Response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: newMessages,
-          model,
+          input: content,
         }),
       })
 
       const data = await res.json();
 
-      if (!res.ok) {
+      if (!data?.content?.done) {
         const err = data?.error || 'Error al generar respuesta'
         setConversationMessages(conv.id, [
           ...newMessages,
           { role: 'assistant', content: `Error: ${err}` },
         ])
+        setIsLoading(false)
         return
       }
 
-      const assistantContent = data?.content || 'No se recibió respuesta.'
+      const assistantContent = data?.content?.message.content || 'No se recibió respuesta.'
       setConversationMessages(conv.id, [
         ...newMessages,
-        { role: 'assistant', content: assistantContent?.parts?.[0]?.text || assistantContent },
+        { role: data.content.message.role, content: data.content.message.content || assistantContent },
       ])
+      setIsLoading(false)
 
     } catch (err) {
       console.error(err)
@@ -66,6 +77,7 @@ export default function Home() {
         ...newMessages,
         { role: 'assistant', content: 'Error de conexión con la API.' },
       ])
+      setIsLoading(false)
     }
   }
 
@@ -97,7 +109,7 @@ export default function Home() {
         onSelectConversation={handleSelectConversation}
       />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-y-auto">
         <ChatHeader
           selectedModel={selectedModel}
           onModelChange={setSelectedModel}
@@ -105,7 +117,7 @@ export default function Home() {
           onClearConversation={handleClearConversation}
         />
 
-        <ChatMessages messages={currentMessages} />
+        <ChatMessages messages={currentMessages} isLoading={isLoading} />
 
         <ChatInput onSendMessage={handleSendMessage} />
       </div>

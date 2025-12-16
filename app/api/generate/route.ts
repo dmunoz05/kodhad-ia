@@ -3,14 +3,29 @@ type Message = {
   content: string
 }
 
+interface responseApi {
+  model: string,
+  created_at: string,
+  message: {
+    role: string,
+    content: string
+  },
+  done: boolean,
+  done_reason: string,
+  total_duration: number,
+  load_duration: number,
+  prompt_eval_count: number,
+  prompt_eval_duration: number,
+  eval_count: number,
+  eval_duration: number
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json()
 
-    const tokenOpenRouter = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY!
     const messages: Message[] = body.messages
-    const model: string = body.model
-    const apiKey: string = process.env.NEXT_PUBLIC_OPENROUTER_MODEL!
+    const apiKey: string = process.env.NEXT_PUBLIC_API_KEY!
 
     if (!messages) {
       return new Response(JSON.stringify({ error: "Messages required" }), { status: 400 })
@@ -26,39 +41,36 @@ export async function POST(req: Request) {
     }))
 
     const payload = {
-      model,
-      messages: contents,
-      temperature: 0.2,
-      max_tokens: 512,
+      // model,
+      input: body.input,
+      // temperature: 0.2,
+      // max_tokens: 512,
     }
 
-    // const url =
-    //   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
+    const url = apiKey
 
-    const url = 'https://openrouter.ai/api/v1/chat/completions'
-
-    const res = await fetch(url, {
+    const res: responseApi | Response = await fetch(url, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${tokenOpenRouter}`,
+        // "Authorization": `Bearer ${tokenOpenRouter}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "http://localhost:3000", // obligatorio
-        "X-Title": "Mi App IA Gratis"
+        // "HTTP-Referer": "http://localhost:3000", // obligatorio
+        // "X-Title": "Mi App IA Gratis"
       },
       body: JSON.stringify(payload),
     })
 
-    if (res?.error) {
-      const text = await res?.error.message
+    if (!res?.ok) {
+      const text = await res.text()
       return new Response(JSON.stringify({ error: text }), { status: 500 })
     }
 
     const data = await res.json()
 
     // Adapt response based on OpenRouter/OpenAI format
-    const output = data.choices?.[0]?.message?.content;
+    // const output = data.choices?.[0]?.message?.content;
 
-    return Response.json({ content: output })
+    return Response.json({ content: data })
   } catch (err: unknown) {
     const message =
       err instanceof Error ? err.message : typeof err === "string" ? err : JSON.stringify(err)

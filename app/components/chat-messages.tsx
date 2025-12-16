@@ -10,9 +10,10 @@ interface Message {
 
 interface ChatMessagesProps {
   messages: Message[]
+  isLoading?: boolean
 }
 
-export function ChatMessages({ messages }: ChatMessagesProps) {
+export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
   if (messages.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
@@ -37,22 +38,20 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
         {messages.map((message, index) => (
           <div
             key={index}
-            className={`flex gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500 ${
-              message.role === 'user' ? 'justify-end' : 'justify-start'
-            }`}
+            className={`flex gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500 ${message.role === 'user' ? 'justify-end' : 'justify-start'
+              }`}
           >
             {message.role === 'assistant' && (
               <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center flex-shrink-0">
                 <SparklesIcon className="h-4 w-4 text-accent-foreground" />
               </div>
             )}
-            
+
             <div
-              className={`rounded-2xl px-4 py-3 max-w-[80%] ${
-                message.role === 'user'
+              className={`rounded-2xl px-4 py-3 max-w-[80%] ${message.role === 'user'
                   ? 'bg-accent text-accent-foreground'
                   : 'bg-card border border-border text-card-foreground'
-              }`}
+                }`}
             >
               <p className="text-sm leading-relaxed whitespace-pre-wrap">
                 {message.content}
@@ -66,6 +65,21 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
             )}
           </div>
         ))}
+
+        {isLoading && (
+          <div className="flex gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center flex-shrink-0">
+              <SparklesIcon className="h-4 w-4 text-accent-foreground" />
+            </div>
+            <div className="rounded-2xl px-4 py-3 bg-card border border-border text-card-foreground">
+              <div className="flex gap-1 items-center">
+                <div className="w-2 h-2 rounded-full bg-accent animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-2 h-2 rounded-full bg-accent animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-2 h-2 rounded-full bg-accent animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </ScrollArea>
   )
